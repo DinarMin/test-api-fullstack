@@ -1,0 +1,7 @@
+.div1 {
+  max-height: 600px;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  padding: 8px;
+  border-radius: 4px;
+}
