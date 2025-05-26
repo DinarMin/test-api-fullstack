@@ -18,6 +18,7 @@ const App: React.FC = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [sortedOrder, setSortedOrder] = useState<number[]>([]);
+  const [dots, setDots] = useState("");
 
   type StateData = {
     selected: number[];
@@ -32,8 +33,8 @@ const App: React.FC = () => {
   };
 
   const fetchItems = async (offsetParam: number, append = false) => {
-    if(!loading) {
-      setLoading(true)
+    if (!loading) {
+      setLoading(true);
     }
     const res = await axios.get<Item[]>(`${API}/variables`, {
       params: { offset: offsetParam, limit: LIMIT, search },
@@ -114,6 +115,13 @@ const App: React.FC = () => {
 
   const isSearchActive = search.trim().length > 0;
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length < 3 ? prev + "." : ""));
+    }, 500);
+    return () => clearInterval(interval);
+  }, [loading]);
+
   return (
     <div style={{ maxWidth: 600, margin: "auto", padding: 16 }}>
       <input
@@ -186,7 +194,7 @@ const App: React.FC = () => {
               {provided.placeholder}
               {loading && (
                 <div style={{ padding: 8, textAlign: "center" }}>
-                  Loading...
+                  Loading{dots}
                 </div>
               )}
               {!hasMore && !loading && items.length > 0 && (
