@@ -7,7 +7,7 @@ import type { DropResult } from "react-beautiful-dnd";
 
 import "./App.css";
 
-const API = "https://test-api-fullstack.onrender.com";
+const API = "http://localhost:3000";
 const LIMIT = 20;
 
 const App: React.FC = () => {
@@ -25,7 +25,7 @@ const App: React.FC = () => {
   };
 
   const fetchState = async () => {
-    const res = await axios.get<StateData>(`${API}/variables`);
+    const res = await axios.get<StateData>(`${API}/state`);
     setSelected(new Set(res.data.selected));
     setSortedOrder(res.data.sorted);
   };
@@ -62,6 +62,9 @@ const App: React.FC = () => {
     if (sortedOrder?.length === 0 || items?.length === 0) return;
 
     const orderSet = new Set(sortedOrder);
+    if (sortedOrder === undefined) {
+      return;
+    }
     const sortedItems = [
       ...(sortedOrder
         .map((id) => items.find((i) => i.id === id))
@@ -95,6 +98,17 @@ const App: React.FC = () => {
     await axios.post(`${API}/sort`, { ids: newOrder });
   };
 
+  const resetState = async () => {
+    await axios.post(`${API}/reset`);
+    setSelected(new Set());
+    setSortedOrder([]);
+    setSearch("");
+    setItems([]);
+    setOffset(0);
+    setHasMore(true);
+    await fetchItems(0, false);
+  };
+
   return (
     <div style={{ maxWidth: 600, margin: "auto", padding: 16 }}>
       <input
@@ -108,7 +122,12 @@ const App: React.FC = () => {
           setHasMore(true);
         }}
       />
-
+      <button
+        onClick={resetState}
+        style={{ cursor: "pointer", marginBottom: "5px" }}
+      >
+        Сбросить сортировку
+      </button>
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="list">
           {(provided) => (

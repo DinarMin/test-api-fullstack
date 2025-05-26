@@ -16,15 +16,35 @@ app.get("/variables", (req, res) => {
     const lim = parseInt(limit) || 20;
     const query = search.toLowerCase();
     let filtered = VARIABLES.filter((variable) => variable.name.toLowerCase().includes(query));
-    if (sortedOrder.length) {
-        const orderSet = new Set(sortedOrder);
-        const sort = sortedOrder
-            .map((id) => filtered.find((item) => item.id === id))
-            .filter(Boolean);
-        const rest = filtered.filter((item) => !orderSet.has(item.id));
-        filtered = [...sort, ...rest];
-    }
-    const result = filtered.slice(step, step + lim);
+    const selectedSet = selectedVariables;
+    const sortedSelected = sortedOrder
+        .filter((id) => selectedSet.has(id))
+        .map((id) => filtered.find((item) => item.id === id))
+        .filter(Boolean);
+    const unsortedSelected = Array.from(selectedSet)
+        .filter((id) => !sortedOrder.includes(id))
+        .map((id) => filtered.find((item) => item.id === id))
+        .filter(Boolean);
+    const selectedIds = new Set([
+        ...sortedOrder.filter((id) => selectedSet.has(id)),
+        ...unsortedSelected.map((v) => v.id),
+    ]);
+    const rest = filtered.filter((item) => !selectedIds.has(item.id));
+    filtered = [...sortedSelected, ...unsortedSelected, ...rest];
+    const result = filtered.slice(step, step + lim).map((v) => (Object.assign(Object.assign({}, v), { selected: selectedSet.has(v.id) })));
+    // if (sortedOrder.length) {
+    //   const orderSet = new Set(sortedOrder);
+    //   const sort = sortedOrder
+    //     .map((id) => filtered.find((item) => item.id === id))
+    //     .filter(Boolean) as typeof VARIABLES;
+    //   const rest = filtered.filter((item) => !orderSet.has(item.id));
+    //   filtered = [...sort, ...rest];
+    // }
+    // const result = filtered.slice(step, step + lim).map((v) => ({
+    //   ...v,
+    //   selected: selectedVariables.has(v.id),
+    // }));
+    // console.log(result);
     res.json(result);
 });
 app.post("/select", (req, res) => {
@@ -48,10 +68,15 @@ app.get("/state", (req, res) => {
         sorted: sortedOrder,
     });
 });
-app.post('/variables-by-ids', (req, res) => {
+app.post("/variables-by-ids", (req, res) => {
     const { ids } = req.body;
-    const result = VARIABLES.filter(item => ids.includes(item.id));
+    const result = VARIABLES.filter((item) => ids.includes(item.id));
     res.json(result);
+});
+app.post("/reset", (req, res) => {
+    selectedVariables.clear();
+    sortedOrder = [];
+    res.json({ success: true });
 });
 app.listen(PORT, () => {
     console.log(`http://localhost:${PORT}`);
