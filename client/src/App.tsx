@@ -25,13 +25,16 @@ const App: React.FC = () => {
   };
 
   const fetchState = async () => {
+    setLoading(true);
     const res = await axios.get<StateData>(`${API}/state`);
     setSelected(new Set(res.data.selected));
     setSortedOrder(res.data.sorted);
   };
 
   const fetchItems = async (offsetParam: number, append = false) => {
-    setLoading(true);
+    if(!loading) {
+      setLoading(true)
+    }
     const res = await axios.get<Item[]>(`${API}/variables`, {
       params: { offset: offsetParam, limit: LIMIT, search },
     });
