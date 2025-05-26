@@ -48,11 +48,15 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const loadInitial = async () => {
-      await fetchState();
-      await fetchItems(0, false);
-    };
-    loadInitial();
+    const timeout = setTimeout(() => {
+      const loadInitial = async () => {
+        await fetchState();
+        await fetchItems(0, false);
+      };
+      loadInitial();
+    }, 500);
+
+    return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
@@ -116,8 +120,8 @@ const App: React.FC = () => {
   const isSearchActive = search.trim().length > 0;
 
   useEffect(() => {
-    if(!loading) {
-      setDots('');
+    if (!loading) {
+      setDots("");
       return;
     }
 
