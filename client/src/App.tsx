@@ -7,7 +7,7 @@ import type { DropResult } from "react-beautiful-dnd";
 
 import "./App.css";
 
-const API = "https://test-api-fullstack-1.onrender.com";
+const API = "https://test-api-fullstack.onrender.com";
 const LIMIT = 20;
 
 const App: React.FC = () => {
