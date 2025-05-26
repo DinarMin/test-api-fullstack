@@ -116,6 +116,11 @@ const App: React.FC = () => {
   const isSearchActive = search.trim().length > 0;
 
   useEffect(() => {
+    if(!loading) {
+      setDots('');
+      return;
+    }
+
     const interval = setInterval(() => {
       setDots((prev) => (prev.length < 3 ? prev + "." : ""));
     }, 500);
