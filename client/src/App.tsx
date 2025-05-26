@@ -20,6 +20,8 @@ const App: React.FC = () => {
   const [sortedOrder, setSortedOrder] = useState<number[]>([]);
   const [dots, setDots] = useState("");
 
+  const controller = new AbortController();
+
   type StateData = {
     selected: number[];
     sorted: number[];
@@ -27,7 +29,9 @@ const App: React.FC = () => {
 
   const fetchState = async () => {
     setLoading(true);
-    const res = await axios.get<StateData>(`${API}/state`);
+    const res = await axios.get<StateData>(`${API}/state`, {
+      signal: controller.signal,
+    } as any);
     setSelected(new Set(res.data.selected));
     setSortedOrder(res.data.sorted);
   };
@@ -38,7 +42,8 @@ const App: React.FC = () => {
     }
     const res = await axios.get<Item[]>(`${API}/variables`, {
       params: { offset: offsetParam, limit: LIMIT, search },
-    });
+      signal: controller.signal
+    } as any);
     const fetched = res.data;
 
     setItems((prev) => (append ? [...prev, ...fetched] : fetched));
@@ -48,6 +53,8 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
+
+
     const timeout = setTimeout(() => {
       const loadInitial = async () => {
         await fetchState();
@@ -56,7 +63,10 @@ const App: React.FC = () => {
       loadInitial();
     }, 500);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      controller.abort();
+      clearTimeout(timeout);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
