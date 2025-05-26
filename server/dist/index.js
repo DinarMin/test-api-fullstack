@@ -15,23 +15,41 @@ app.get("/variables", (req, res) => {
     const step = parseInt(offset) || 0;
     const lim = parseInt(limit) || 20;
     const query = search.toLowerCase();
+    //   let filtered = VARIABLES.filter((variable) =>
+    //     variable.name.toLowerCase().includes(query)
+    //   );
+    //   const selectedSet = selectedVariables;
+    //   const sortedSelected = sortedOrder
+    //   .filter((id) => selectedSet.has(id))
+    //   .map((id) => filtered.find((item) => item.id === id))
+    //   .filter(Boolean) as typeof VARIABLES;
+    // const unsortedSelected = Array.from(selectedSet)
+    //   .filter((id) => !sortedOrder.includes(id))
+    //   .map((id) => filtered.find((item) => item.id === id))
+    //   .filter(Boolean) as typeof VARIABLES;
+    // const selectedIds = new Set([...sortedOrder.filter(id => selectedSet.has(id)), ...unsortedSelected.map(v => v.id)]);
+    // const rest = filtered.filter((item) => !selectedIds.has(item.id));
+    // filtered = [...sortedSelected, ...unsortedSelected, ...rest];
+    // const result = filtered.slice(step, step + lim).map((v) => ({
+    //   ...v,
+    //   selected: selectedSet.has(v.id),
+    // }));
     let filtered = VARIABLES.filter((variable) => variable.name.toLowerCase().includes(query));
+    // Применяем sortedOrder к отфильтрованным
+    const filteredMap = new Map(filtered.map((item) => [item.id, item]));
+    const orderedPart = sortedOrder
+        .map((id) => filteredMap.get(id))
+        .filter(Boolean);
+    const remaining = filtered.filter((item) => !sortedOrder.includes(item.id));
+    filtered = [...orderedPart, ...remaining];
+    // Поднимаем отмеченные вверх
     const selectedSet = selectedVariables;
-    const sortedSelected = sortedOrder
-        .filter((id) => selectedSet.has(id))
-        .map((id) => filtered.find((item) => item.id === id))
-        .filter(Boolean);
-    const unsortedSelected = Array.from(selectedSet)
-        .filter((id) => !sortedOrder.includes(id))
-        .map((id) => filtered.find((item) => item.id === id))
-        .filter(Boolean);
-    const selectedIds = new Set([
-        ...sortedOrder.filter((id) => selectedSet.has(id)),
-        ...unsortedSelected.map((v) => v.id),
-    ]);
-    const rest = filtered.filter((item) => !selectedIds.has(item.id));
-    filtered = [...sortedSelected, ...unsortedSelected, ...rest];
+    const selected = filtered.filter((item) => selectedSet.has(item.id));
+    const unselected = filtered.filter((item) => !selectedSet.has(item.id));
+    filtered = [...selected, ...unselected];
+    // Пагинация и отметка
     const result = filtered.slice(step, step + lim).map((v) => (Object.assign(Object.assign({}, v), { selected: selectedSet.has(v.id) })));
+    res.json(result);
     // if (sortedOrder.length) {
     //   const orderSet = new Set(sortedOrder);
     //   const sort = sortedOrder
@@ -45,7 +63,6 @@ app.get("/variables", (req, res) => {
     //   selected: selectedVariables.has(v.id),
     // }));
     // console.log(result);
-    res.json(result);
 });
 app.post("/select", (req, res) => {
     const { id, selected } = req.body;

@@ -109,6 +109,8 @@ const App: React.FC = () => {
     await fetchItems(0, false);
   };
 
+  const isSearchActive = search.trim().length > 0;
+
   return (
     <div style={{ maxWidth: 600, margin: "auto", padding: 16 }}>
       <input
@@ -147,6 +149,7 @@ const App: React.FC = () => {
                   key={item.id}
                   draggableId={item.id.toString()}
                   index={index}
+                  isDragDisabled={isSearchActive}
                 >
                   {(provided, snapshot) => (
                     <div

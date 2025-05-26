@@ -21,50 +21,29 @@ app.get("/variables", (req: Request, res: Response) => {
   const lim = parseInt(limit as string) || 20;
   const query = (search as string).toLowerCase();
 
-  let filtered = VARIABLES.filter((variable) =>
-    variable.name.toLowerCase().includes(query)
-  );
+let filtered = VARIABLES.filter((variable) =>
+  variable.name.toLowerCase().includes(query)
+);
 
-  const selectedSet = selectedVariables;
+const filteredMap = new Map(filtered.map((item) => [item.id, item]));
+const orderedPart = sortedOrder
+  .map((id) => filteredMap.get(id))
+  .filter(Boolean) as typeof VARIABLES;
 
-  const sortedSelected = sortedOrder
-    .filter((id) => selectedSet.has(id))
-    .map((id) => filtered.find((item) => item.id === id))
-    .filter(Boolean) as typeof VARIABLES;
+const remaining = filtered.filter((item) => !sortedOrder.includes(item.id));
+filtered = [...orderedPart, ...remaining];
 
-  const unsortedSelected = Array.from(selectedSet)
-    .filter((id) => !sortedOrder.includes(id))
-    .map((id) => filtered.find((item) => item.id === id))
-    .filter(Boolean) as typeof VARIABLES;
+const selectedSet = selectedVariables;
+const selected = filtered.filter((item) => selectedSet.has(item.id));
+const unselected = filtered.filter((item) => !selectedSet.has(item.id));
+filtered = [...selected, ...unselected];
 
-  const selectedIds = new Set([
-    ...sortedOrder.filter((id) => selectedSet.has(id)),
-    ...unsortedSelected.map((v) => v.id),
-  ]);
-  const rest = filtered.filter((item) => !selectedIds.has(item.id));
+const result = filtered.slice(step, step + lim).map((v) => ({
+  ...v,
+  selected: selectedSet.has(v.id),
+}));
 
-  filtered = [...sortedSelected, ...unsortedSelected, ...rest];
-
-  const result = filtered.slice(step, step + lim).map((v) => ({
-    ...v,
-    selected: selectedSet.has(v.id),
-  }));
-
-  // if (sortedOrder.length) {
-  //   const orderSet = new Set(sortedOrder);
-  //   const sort = sortedOrder
-  //     .map((id) => filtered.find((item) => item.id === id))
-  //     .filter(Boolean) as typeof VARIABLES;
-  //   const rest = filtered.filter((item) => !orderSet.has(item.id));
-  //   filtered = [...sort, ...rest];
-  // }
-
-  // const result = filtered.slice(step, step + lim).map((v) => ({
-  //   ...v,
-  //   selected: selectedVariables.has(v.id),
-  // }));
-  // console.log(result);
-  res.json(result);
+res.json(result);
 });
 
 app.post("/select", (req, res) => {
