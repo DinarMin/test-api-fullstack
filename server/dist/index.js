@@ -1,13 +1,11 @@
 import express from "express";
 import cors from "cors";
+import fs from "fs";
 const app = express();
 const PORT = 3000;
 app.use(cors());
 app.use(express.json());
-const VARIABLES = Array.from({ length: 1000000 }, (_, i) => ({
-    id: i + 1,
-    name: `Variable ${i + 1}`,
-}));
+const VARIABLES = JSON.parse(fs.readFileSync("variables.json", "utf-8"));
 let selectedVariables = new Set();
 let sortedOrder = [];
 app.get("/variables", (req, res) => {
