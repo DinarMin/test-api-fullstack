@@ -85,6 +85,6 @@ app.post("/reset", (req, res) => {
   res.json({ success: true });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`http://localhost:${PORT}`);
 });
